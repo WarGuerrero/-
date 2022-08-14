@@ -1,143 +1,98 @@
-const db = require("./models");
+const { tasks } = require("../models");
+const db = require("../models");
 const Task = db.tasks;
 
 //Create and Save a new Task
-exports.create = (req, res) => {
+exports.create = async (req, res) => {
     //Validate request
     if (!req.body.title) {
-        res.status(400).send({ message: "Content can not be empty!" });
+        res.status(400).send({ message: "Necesitas un nombre" });
         return;
     }
 
-    //Create a Task
-    const Task = new Task({
-        title: req.body.title,
-        description: req.body.description
-    });
+    if (!req.body.description) {
+        res.status(400).send({ message: "Necesitas una descripción" });
+        return;
+    }
 
-    //Save Task in the database
-    task
-        .save(task)
-        .then(data => {
-            res.send(data);
-        })
-        .catch(err => {
-            res.status(500).send({
-                message:
-                err.message || "Some error occurred while creating the Task."
-            });
-        });
+    const body = req.body
+
+    //Create a Task
+    const newTask = await Task.create({
+        title: body.title,
+        description: body.description
+    })
+
+    console.log("Nuev tarea", newTask)
+
+    res.json({
+        data: newTask,
+        message: "Tarea creada"
+    });
 };
 
 //Retrieve all Task from the database.
-exports.findAll = (req, res) => {
+exports.findAll = async (req, res) => {
     const title = req.query.title;
-    var condition = title ? {title: { $regex: new RegExp(title), $options: "i"} } : {};
+    var condition = title ? { title: { $regex: new RegExp(title), $options: "i" } } : {};
 
-    Task.find(condition)
-        .then(data => {
-            res.send(data);
-        })
-        .catch(err => {
-            res.status(500).send({
-                message:
-                err.message || "Some error ocurred while retrieving tasks."
-            });
-        });
-};
+    const tasks = await Task.find()
 
-//Find a single Task with an id
-exports.findOne = (req, res) => {
-    const id = req. params.id;
-
-    Task.findById(id)
-        .then(data => {
-            if (!data)
-                res.status(404).send({ message: "Not found Task with id=" + id });
-            else res.send(data);
-        })
-        .catch(err => {
-            res
-                .status(500)
-                .send({ message: "Error retrieving Task with id=" + id });
-        });
+    res.json({
+        data: tasks,
+    });
 };
 
 //Update a Task by the id in the request
-exports.update = (req, res) => {
-    if (!req.body) {
-        return res.status(400).send({
-            message: "Data to update can not be empty!"
-        });
+exports.update = async (req, res) => {
+
+     //Validate request
+     if (!req.body.title) {
+        res.status(400).send({ message: "Necesitas un titulo" });
+        return;
     }
 
+    if (!req.body.description) {
+        res.status(400).send({ message: "Necesitas una descripción" });
+        return;
+    }
 
     const id = req.params.id;
 
-    Task.findByIdAndUpdate(id, req.body, { useFindAndModify: false })
-        .then(data => {
-            if (!data) {
-                res.status(404).send({
-                    message: `Cannot update Task with id=${id}. Maybe Task was not found`
-                });
-            } else res.send({ message: "Task was updated succesfully." });
-        })
-        .catch(err => {
-            res.status(500).send({
-                message: "Error updating Task with id=" = id
-            });
-        });
+    const body = req.body;
+
+    const tasksUpdate = await Task.findByIdAndUpdate(
+        { _id: id },
+        {
+           title: body.title,
+           description: body.description, 
+        }
+    );
+
+    res.json({
+        data: tasksUpdate,
+        message: "Tarea actualizada"
+    });
 };
 
 //Delete a Task with the specified id in the request
-exports.delete = (req, res) => {
+exports.delete = async (req, res) => {
     const id = req.params.id;
 
-    Task.findByIdAndRemove(id, { useFindAndModify: false })
-        .then(data => {
-            if (!data) {
-                res.status(404).send({
-                    message: `Cannot delete Task with id=${id}. Maybe Task was not found!`
-                });
-            } else {
-                res.send({
-                    message: "Task was deleted succesfully!"
-                });
-            }
-        })
-        .catch(err => {
-            res.status(500).send({
-                message: "Could not delete Task with id=" + id
-            });
-        });
-};
+    const taskDelete = await Task.findByIdAndDelete(id)
 
-//Delete all Tasks from the database.
-exports.deleteAll = (req, res) => {
-    Task.deleteMany ({})
-        .then(data => {
-            res.send({
-                message: `${data.deletedCount} Tasks were deleted successfully!`
-            });
-        })
-        .catch(err => {
-            res.status(500).send({
-                message:
-                    err.message || "Some error occurred while removing all Tasks."
-            });
-        });
-};
-
-//Find all published Tasks
-exports.findAllPublished = (req, res) => {
-    Task.find({ published: true })
-    .then(data => {
-        res.send(data);
+    res.json ({
+        message: "Tarea eliminada"
     })
-    .catch(err => {
-        res.status(500).send({
-            message:
-            err.message ||"Some error ocurred while retrieving Tasks."
-        });
-    });
+};
+
+exports.getById = async (req, res) => {
+    const id = req.params.id;
+
+    const taskById = await Task.findById(id)
+
+    res.json ({
+        data : taskById, 
+        message: "Tarea obtenida"
+    })
 };

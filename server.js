@@ -8,18 +8,26 @@ const cors = require("cors");
 const app = express();
 
 var corsOptions = {
-    origin: "http://localhost:3000/"
+    origin: "*"
 };
 
 app.use(cors(corsOptions));
 //parse requests of content-type - application/json
+
+app.use(function(req, res, next) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    next();
+});
 
 app.use(bodyParser.json());
 //parse rquests of content-type - application/x-www-form-urlencoded
 
 app.use(bodyParser.urlencoded({ extended: true }));
 
-const db = require("./app/models");
+const db = require("./app/models/index");
 db.mongoose
     .connect(db.url, {
         useNewUrlParser: true,
@@ -38,7 +46,7 @@ app.get("/", (req, res) => {
     res.json({ message: "Welcome to War application."});
 });
 
-require("./app/routes/task.routes.js");
+require("./app/routes/task.routes.js")(app);
 
 // set port, listen for requests
 const PORT = process.env.PORT || 8080;

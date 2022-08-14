@@ -1,5 +1,5 @@
 module.exports = app => {
-    const tasks = require("./controllers/task.controller.js");
+    const tasks = require("../controllers/task.controller.js");
 
     var router = require("express").Router();
 
@@ -9,20 +9,13 @@ module.exports = app => {
     //Retrieve all tasks
     router.get("/", tasks.findAll);
 
-    //Retrieve all published tasks
-    router.get("/published", tasks.findAllPublished);
-
-    //Retrieve a single task with Id
-    router.get("/:id", tasks.findOne);
-
     //Update a task with id
     router.put("/:id", tasks.update);
 
     //Delete a task with id
-    router.delete("/", tasks.deleteAll);
+    router.delete("/:id", tasks.delete);
 
-    //Create a new task
-    router.delete("/", tasks.deleteAll);
+    router.get("/:id", tasks.getById);
 
     app.use("/api/tasks", router);
 };
